@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MesLivres">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Mes Livres — Résumés</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0f0f10;
+    --surface: #1a1a1c;
+    --surface-2: #242428;
+    --border: #2e2e33;
+    --text: #f0efeb;
+    --text-2: #a0a09a;
+    --text-3: #6b6b66;
+    --accent: #d4a574;
+    --accent-soft: #2a2420;
+    --danger: #c85a54;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #faf8f4;
+      --surface: #ffffff;
+      --surface-2: #f0ede6;
+      --border: #e2dfd7;
+      --text: #1a1a1a;
+      --text-2: #5a5a54;
+      --text-3: #8a8a82;
+      --accent: #8b5a2b;
+      --accent-soft: #f4ebe0;
+    }
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    overscroll-behavior-y: none;
+    min-height: 100vh;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(80px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  header {
+    padding: 20px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); }
+
+  .search-bar {
+    margin: 0 20px 16px;
+    position: relative;
+  }
+  .search-bar input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-3);
+  }
+
+  .tags-filter {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 20px 12px;
+    scrollbar-width: none;
+  }
+  .tags-filter::-webkit-scrollbar { display: none; }
+  .tag-chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .tag-chip.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .books-list {
+    padding: 4px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .book-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .book-card:active { transform: scale(0.98); }
+  .book-card-inner {
+    display: flex;
+    gap: 14px;
+  }
+  .book-cover {
+    width: 56px;
+    height: 84px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background: var(--surface-2);
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .book-cover-placeholder {
+    width: 56px;
+    height: 84px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+  .book-card-content { flex: 1; min-width: 0; }
+  .book-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .book-author {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .book-preview {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .book-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .book-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-3);
+  }
+  .empty-state p { margin-top: 12px; font-size: 14px; }
+
+  .fab {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 300;
+    z-index: 100;
+  }
+  .fab:active { transform: scale(0.95); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .modal-overlay.show { display: flex; }
+  @media (min-width: 640px) {
+    .modal-overlay { align-items: center; justify-content: center; }
+  }
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 720px;
+    max-height: 92vh;
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    animation: slideUp 0.25s ease;
+  }
+  @media (min-width: 640px) {
+    .modal { border-radius: 20px; max-height: 85vh; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close, .modal-action {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 8px;
+    font-weight: 500;
+  }
+  .modal-body { padding: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .form-group input, .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+  }
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { min-height: 80px; }
+
+  .suggestions {
+    margin-top: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    display: none;
+  }
+  .suggestions.show { display: block; }
+  .suggestion {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .suggestion:last-child { border-bottom: none; }
+  .suggestion:active { background: var(--surface-2); }
+  .suggestion img, .suggestion-placeholder {
+    width: 36px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--surface-2);
+    flex-shrink: 0;
+  }
+  .suggestion-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    font-size: 16px;
+  }
+  .suggestion-text { flex: 1; min-width: 0; }
+  .suggestion-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .suggestion-author {
+    font-size: 12px;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .detail-header {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .detail-cover {
+    width: 80px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+
+  /* Book detail */
+  .detail-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .detail-author { font-size: 15px; color: var(--text-2); margin-bottom: 16px; }
+  .detail-section { margin-bottom: 24px; }
+  .detail-section h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-3);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .detail-summary {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .detail-summary h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: var(--accent);
+  }
+  .detail-summary h5 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 12px 0 6px;
+  }
+  .detail-summary blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 12px 0;
+    background: var(--surface);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: var(--text);
+  }
+  .detail-summary ul { padding-left: 20px; margin: 8px 0; }
+  .detail-summary li { margin-bottom: 6px; }
+  .detail-summary p { margin-bottom: 10px; }
+
+  .quote {
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 10px;
+    font-size: 14px;
+    position: relative;
+  }
+  .quote-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: var(--text-3);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .add-inline {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .add-inline input {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .add-inline button {
+    padding: 10px 16px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .detail-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .detail-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .detail-tag button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.6;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-2);
+    font-size: 14px;
+    gap: 10px;
+  }
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .notes-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Mes <span>Livres</span></h1>
+  <div style="display: flex; gap: 4px;">
+    <button class="modal-action" onclick="resetApiKey()" title="Réinitialiser clé API">⚙</button>
+    <button class="modal-action" onclick="exportData()" title="Exporter">⇪</button>
+  </div>
+</header>
+
+<div class="search-bar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+  </svg>
+  <input type="search" id="search" placeholder="Rechercher un livre, un thème...">
+</div>
+
+<div class="tags-filter" id="tagsFilter"></div>
+
+<div class="books-list" id="booksList"></div>
+
+<button class="fab" onclick="openAddModal()">+</button>
+
+<!-- Add book modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeAddModal()">Annuler</button>
+      <div class="modal-title">Nouveau livre</div>
+      <div style="width: 60px;"></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Rechercher un livre</label>
+        <input type="text" id="newTitle" placeholder="Tape quelques mots du titre..." autocomplete="off">
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <div class="form-group">
+        <label>Auteur</label>
+        <input type="text" id="newAuthor" placeholder="(rempli auto ou à la main)">
+      </div>
+      <input type="hidden" id="newCover">
+      <button class="btn-primary" id="generateBtn" onclick="generateSummary()">
+        ✨ Générer le résumé IA
+      </button>
+      <button class="btn-secondary" onclick="addBookManually()">
+        Ajouter sans résumé
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Book detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeDetailModal()">Fermer</button>
+      <div class="modal-title" id="detailModalTitle">Livre</div>
+      <button class="modal-action" onclick="deleteCurrentBook()" style="color: var(--danger);">Suppr.</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+// ===== Storage =====
+const STORAGE_KEY = 'mesLivres_v1';
+const API_KEY_STORAGE = 'mesLivres_geminiKey';
+
+// Modèle Gemini — "flash" est rapide, gratuit et largement suffisant pour des résumés
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+let books = [];
+let currentFilter = null;
+let currentSearch = '';
+let currentBookId = null;
+
+function loadBooks() {
+  try {
+    books = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch { books = []; }
+}
+function saveBooks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+}
+
+// ===== Rendering =====
+function getAllTags() {
+  const tags = new Set();
+  books.forEach(b => (b.tags || []).forEach(t => tags.add(t)));
+  return [...tags].sort();
+}
+
+function renderTags() {
+  const tags = getAllTags();
+  const container = document.getElementById('tagsFilter');
+  if (tags.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = `<div class="tag-chip ${!currentFilter ? 'active' : ''}" onclick="setFilter(null)">Tous</div>` +
+    tags.map(t => `<div class="tag-chip ${currentFilter === t ? 'active' : ''}" onclick="setFilter('${escapeAttr(t)}')">${escapeHtml(t)}</div>`).join('');
+}
+
+function renderBooks() {
+  const list = document.getElementById('booksList');
+  let filtered = books;
+  if (currentFilter) filtered = filtered.filter(b => (b.tags || []).includes(currentFilter));
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(b =>
+      (b.title || '').toLowerCase().includes(q) ||
+      (b.author || '').toLowerCase().includes(q) ||
+      (b.summary || '').toLowerCase().includes(q) ||
+      (b.notes || '').toLowerCase().includes(q) ||
+      (b.tags || []).some(t => t.toLowerCase().includes(q)) ||
+      (b.quotes || []).some(qu => qu.toLowerCase().includes(q))
+    );
+  }
+
+  if (filtered.length === 0) {
+    if (books.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+        </svg>
+        <p>Aucun livre pour l'instant.<br>Appuie sur + pour ajouter ton premier résumé.</p>
+      </div>`;
+    } else {
+      list.innerHTML = `<div class="empty-state"><p>Aucun résultat</p></div>`;
+    }
+    return;
+  }
+
+  list.innerHTML = filtered.map(b => `
+    <div class="book-card" onclick="openDetail('${b.id}')">
+      <div class="book-card-inner">
+        ${b.cover ? `<img class="book-cover" src="${escapeAttr(b.cover)}" alt="" onerror="this.outerHTML='<div class=\\'book-cover-placeholder\\'>${escapeHtml(b.title.charAt(0).toUpperCase())}</div>'">` : `<div class="book-cover-placeholder">${escapeHtml(b.title.charAt(0).toUpperCase())}</div>`}
+        <div class="book-card-content">
+          <div class="book-title">${escapeHtml(b.title)}</div>
+          ${b.author ? `<div class="book-author">${escapeHtml(b.author)}</div>` : ''}
+          ${b.summary ? `<div class="book-preview">${escapeHtml(stripMd(b.summary).slice(0, 120))}</div>` : '<div class="book-preview" style="font-style:italic;opacity:0.6;">Pas encore de résumé</div>'}
+          ${(b.tags || []).length ? `<div class="book-tags">${b.tags.map(t => `<span class="book-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function stripMd(s) {
+  return s.replace(/[#*_`>]/g, '').replace(/\n+/g, ' ').trim();
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) {
+  return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function setFilter(tag) {
+  currentFilter = tag;
+  renderTags();
+  renderBooks();
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  renderBooks();
+});
+
+// ===== Google Books autocomplete =====
+let searchTimeout = null;
+document.getElementById('newTitle').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  clearTimeout(searchTimeout);
+  if (q.length < 3) {
+    document.getElementById('suggestions').classList.remove('show');
+    return;
+  }
+  searchTimeout = setTimeout(() => searchGoogleBooks(q), 350);
+});
+
+async function searchGoogleBooks(query) {
+  const box = document.getElementById('suggestions');
+  try {
+    // langRestrict=fr préfère les résultats français ; on garde aussi les anglais
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (!data.items || data.items.length === 0) {
+      box.classList.remove('show');
+      return;
+    }
+    const seen = new Set();
+    const results = data.items.map(item => {
+      const v = item.volumeInfo || {};
+      const title = v.title || '';
+      const authors = (v.authors || []).join(', ');
+      const key = (title + '|' + authors).toLowerCase();
+      if (seen.has(key) || !title) return null;
+      seen.add(key);
+      let cover = '';
+      if (v.imageLinks) {
+        cover = (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail || '').replace('http://', 'https://');
+      }
+      return { title, authors, cover };
+    }).filter(Boolean).slice(0, 6);
+
+    if (results.length === 0) { box.classList.remove('show'); return; }
+
+    box.innerHTML = results.map(r => `
+      <div class="suggestion" onclick='pickSuggestion(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
+        ${r.cover ? `<img src="${escapeAttr(r.cover)}" alt="" onerror="this.outerHTML='<div class=\\'suggestion-placeholder\\'>📖</div>'">` : `<div class="suggestion-placeholder">📖</div>`}
+        <div class="suggestion-text">
+          <div class="suggestion-title">${escapeHtml(r.title)}</div>
+          <div class="suggestion-author">${escapeHtml(r.authors || 'Auteur inconnu')}</div>
+        </div>
+      </div>
+    `).join('');
+    box.classList.add('show');
+  } catch (e) {
+    box.classList.remove('show');
+  }
+}
+
+function pickSuggestion(r) {
+  document.getElementById('newTitle').value = r.title;
+  document.getElementById('newAuthor').value = r.authors || '';
+  document.getElementById('newCover').value = r.cover || '';
+  document.getElementById('suggestions').classList.remove('show');
+}
+
+// ===== Add book =====
+function openAddModal() {
+  document.getElementById('newTitle').value = '';
+  document.getElementById('newAuthor').value = '';
+  document.getElementById('newCover').value = '';
+  document.getElementById('suggestions').classList.remove('show');
+  document.getElementById('suggestions').innerHTML = '';
+  document.getElementById('addModal').classList.add('show');
+  setTimeout(() => document.getElementById('newTitle').focus(), 100);
+}
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('show');
+}
+
+function addBookManually() {
+  const title = document.getElementById('newTitle').value.trim();
+  const author = document.getElementById('newAuthor').value.trim();
+  const cover = document.getElementById('newCover').value.trim();
+  if (!title) { alert('Titre requis'); return; }
+  const book = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    title, author, cover, summary: '', tags: [], quotes: [], notes: '', createdAt: Date.now()
+  };
+  books.unshift(book);
+  saveBooks();
+  closeAddModal();
+  renderTags();
+  renderBooks();
+  openDetail(book.id);
+}
+
+async function generateSummary() {
+  const title = document.getElementById('newTitle').value.trim();
+  const author = document.getElementById('newAuthor').value.trim();
+  const cover = document.getElementById('newCover').value.trim();
+  if (!title) { alert('Titre requis'); return; }
+
+  // Vérifie que la clé API est configurée
+  let apiKey = localStorage.getItem(API_KEY_STORAGE);
+  if (!apiKey) {
+    apiKey = prompt("Colle ta clé API Google Gemini (gratuite sur aistudio.google.com/apikey).\n\nElle sera stockée uniquement sur ton appareil.");
+    if (!apiKey || !apiKey.trim()) return;
+    apiKey = apiKey.trim();
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle;margin-right:8px;"></span> Génération en cours...';
+
+  try {
+    const prompt = `Tu es un expert en synthèse de livres de développement personnel. Ton objectif : produire un résumé que le lecteur pourra consulter dans 6 mois et qui lui permettra de RETROUVER et APPLIQUER les idées du livre sans avoir à le relire.
+
+Livre à résumer : "${title}"${author ? ' par ' + author : ''}
+
+Règles strictes :
+- Écris en français, ton direct et concret
+- Pas de blabla, pas de "dans ce livre l'auteur explique que..."
+- Chaque point doit être autonome et compréhensible sans contexte
+- Privilégie les formulations actionnables (verbes d'action, exemples concrets)
+- Si tu ne connais pas ce livre avec certitude, réponds UNIQUEMENT : LIVRE_INCONNU
+
+Produis EXACTEMENT cette structure en markdown :
+
+## En une phrase
+(La thèse centrale du livre en une seule phrase percutante, maximum 25 mots)
+
+## Pourquoi le lire
+(2-3 phrases : à qui ça s'adresse et quel problème ça résout concrètement)
+
+## Les 5 idées-forces
+**1. [Titre court et frappant de l'idée]**
+Explication en 2-3 phrases. Inclut un exemple concret ou une mise en situation quand c'est pertinent.
+
+**2. [Titre]**
+...
+
+(Continue jusqu'à 5. Chaque idée doit être distincte et mémorable.)
+
+## Concepts & vocabulaire clés
+- **Nom du concept** : définition en une ligne
+- **Nom du concept** : définition en une ligne
+(3 à 5 concepts propres au livre, ceux qu'on réutilise après lecture)
+
+## Ce que je peux appliquer dès demain
+- Action concrète 1 (commence par un verbe : "Noter...", "Bloquer 20 min...", "Remplacer... par...")
+- Action concrète 2
+- Action concrète 3
+- Action concrète 4
+(4 actions réalistes, spécifiques, mesurables)
+
+## Les pièges à éviter
+(2-3 erreurs classiques que les lecteurs font en appliquant ce livre, ou les limites / critiques légitimes du livre)
+
+## Citation à retenir
+> Une citation marquante du livre (vraie, pas inventée) qui capture l'esprit de l'ouvrage.
+
+## Tags
+(4 à 6 tags courts séparés par des virgules, lowercase, en français. Exemples de pool : productivité, habitudes, mindset, focus, communication, leadership, finance, relations, émotions, discipline, créativité, stoïcisme, méditation, négociation, apprentissage, santé, sommeil, prise-de-décision)`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4, maxOutputTokens: 3000 }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      if (response.status === 400 || response.status === 403) {
+        if (confirm("Clé API invalide ou refusée. Veux-tu en saisir une nouvelle ?")) {
+          localStorage.removeItem(API_KEY_STORAGE);
+        }
+      }
+      throw new Error('Erreur API ' + response.status + ' : ' + errText.slice(0, 200));
+    }
+    const data = await response.json();
+    const text = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    if (!text) throw new Error('Réponse vide de l\'IA');
+
+    if (text.includes('LIVRE_INCONNU')) {
+      alert("Je ne connais pas ce livre. Essaie avec l'auteur, ou ajoute-le manuellement.");
+      btn.disabled = false;
+      btn.innerHTML = '✨ Générer le résumé IA';
+      return;
+    }
+
+    // Parse tags
+    const tagsMatch = text.match(/##\s*Tags\s*\n([^\n#]+)/i);
+    let tags = [];
+    let summary = text;
+    if (tagsMatch) {
+      tags = tagsMatch[1].split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+      summary = text.replace(/##\s*Tags\s*\n[^\n#]+/i, '').trim();
+    }
+
+    const book = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      title, author, cover, summary, tags, quotes: [], notes: '', createdAt: Date.now()
+    };
+    books.unshift(book);
+    saveBooks();
+    closeAddModal();
+    renderTags();
+    renderBooks();
+    openDetail(book.id);
+  } catch (e) {
+    alert("Erreur : " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Générer le résumé IA';
+  }
+}
+
+function resetApiKey() {
+  if (confirm("Effacer la clé API Gemini de cet appareil ?")) {
+    localStorage.removeItem(API_KEY_STORAGE);
+    alert("Clé effacée. Elle sera redemandée lors de la prochaine génération.");
+  }
+}
+
+// ===== Detail =====
+function openDetail(id) {
+  currentBookId = id;
+  const book = books.find(b => b.id === id);
+  if (!book) return;
+  document.getElementById('detailModalTitle').textContent = book.title.length > 30 ? book.title.slice(0, 30) + '...' : book.title;
+  renderDetail();
+  document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('show');
+  currentBookId = null;
+}
+
+function renderDetail() {
+  const book = books.find(b => b.id === currentBookId);
+  if (!book) return;
+  const body = document.getElementById('detailBody');
+
+  body.innerHTML = `
+    <div class="detail-header">
+      ${book.cover ? `<img class="detail-cover" src="${escapeAttr(book.cover)}" alt="" onerror="this.style.display='none'">` : ''}
+      <div>
+        <div class="detail-title">${escapeHtml(book.title)}</div>
+        ${book.author ? `<div class="detail-author">${escapeHtml(book.author)}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Tags</h3>
+      <div class="detail-tags" id="detailTags">
+        ${(book.tags || []).map(t => `<span class="detail-tag">${escapeHtml(t)} <button onclick="removeTag('${escapeAttr(t)}')">×</button></span>`).join('')}
+      </div>
+      <div class="add-inline">
+        <input type="text" id="newTag" placeholder="Ajouter un tag..." onkeydown="if(event.key==='Enter')addTag()">
+        <button onclick="addTag()">+</button>
+      </div>
+    </div>
+
+    ${book.summary ? `
+    <div class="detail-section">
+      <h3>Résumé</h3>
+      <div class="detail-summary">${renderMarkdown(book.summary)}</div>
+    </div>` : `
+    <div class="detail-section">
+      <h3>Résumé</h3>
+      <button class="btn-primary" onclick="regenerateSummary()">✨ Générer avec l'IA</button>
+    </div>`}
+
+    <div class="detail-section">
+      <h3>Citations favorites</h3>
+      <div id="quotesList">
+        ${(book.quotes || []).map((q, i) => `
+          <div class="quote">
+            ${escapeHtml(q)}
+            <button class="quote-delete" onclick="removeQuote(${i})">×</button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="add-inline">
+        <input type="text" id="newQuote" placeholder="Ajouter une citation..." onkeydown="if(event.key==='Enter')addQuote()">
+        <button onclick="addQuote()">+</button>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Mes notes</h3>
+      <textarea class="notes-textarea" id="bookNotes" placeholder="Tes réflexions, applications, idées..." onblur="saveNotes()">${escapeHtml(book.notes || '')}</textarea>
+    </div>
+  `;
+}
+
+function renderMarkdown(md) {
+  let html = escapeHtml(md);
+  // Blockquotes
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  // Headings
+  html = html.replace(/^## (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h5>$1</h5>');
+  // Lists
+  html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>');
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+  // Paragraphs
+  html = html.replace(/\n\n/g, '</p><p>');
+  html = '<p>' + html + '</p>';
+  html = html.replace(/<p>(<h[45]>)/g, '$1').replace(/(<\/h[45]>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<ul>)/g, '$1').replace(/(<\/ul>)<\/p>/g, '$1');
+  html = html.replace(/<p>(<blockquote>)/g, '$1').replace(/(<\/blockquote>)<\/p>/g, '$1');
+  return html;
+}
+
+function addTag() {
+  const input = document.getElementById('newTag');
+  const tag = input.value.trim().toLowerCase();
+  if (!tag) return;
+  const book = books.find(b => b.id === currentBookId);
+  if (!book.tags) book.tags = [];
+  if (!book.tags.includes(tag)) book.tags.push(tag);
+  saveBooks();
+  renderDetail();
+  renderTags();
+  renderBooks();
+}
+function removeTag(tag) {
+  const book = books.find(b => b.id === currentBookId);
+  book.tags = (book.tags || []).filter(t => t !== tag);
+  saveBooks();
+  renderDetail();
+  renderTags();
+  renderBooks();
+}
+
+function addQuote() {
+  const input = document.getElementById('newQuote');
+  const q = input.value.trim();
+  if (!q) return;
+  const book = books.find(b => b.id === currentBookId);
+  if (!book.quotes) book.quotes = [];
+  book.quotes.push(q);
+  saveBooks();
+  renderDetail();
+}
+function removeQuote(i) {
+  const book = books.find(b => b.id === currentBookId);
+  book.quotes.splice(i, 1);
+  saveBooks();
+  renderDetail();
+}
+
+function saveNotes() {
+  const book = books.find(b => b.id === currentBookId);
+  const notes = document.getElementById('bookNotes').value;
+  book.notes = notes;
+  saveBooks();
+}
+
+async function regenerateSummary() {
+  const book = books.find(b => b.id === currentBookId);
+  document.getElementById('newTitle').value = book.title;
+  document.getElementById('newAuthor').value = book.author || '';
+  // Delete this empty book, then regenerate
+  books = books.filter(b => b.id !== currentBookId);
+  saveBooks();
+  closeDetailModal();
+  document.getElementById('addModal').classList.add('show');
+  setTimeout(() => generateSummary(), 100);
+}
+
+function deleteCurrentBook() {
+  if (!confirm('Supprimer ce livre ?')) return;
+  books = books.filter(b => b.id !== currentBookId);
+  saveBooks();
+  closeDetailModal();
+  renderTags();
+  renderBooks();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(books, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mes-livres-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// ===== Service Worker (for offline/installable) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// Init
+loadBooks();
+renderTags();
+renderBooks();
+</script>
+</body>
+</html>
