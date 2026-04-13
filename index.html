@@ -829,6 +829,7 @@ Livre à résumer : "${title}"${author ? ' par ' + author : ''}
 
 Règles strictes :
 - Écris en français, ton direct et concret
+- Sois concis : chaque section doit aller à l'essentiel, sans développements inutiles
 - Pas de blabla, pas de "dans ce livre l'auteur explique que..."
 - Chaque point doit être autonome et compréhensible sans contexte
 - Privilégie les formulations actionnables (verbes d'action, exemples concrets)
@@ -837,40 +838,38 @@ Règles strictes :
 Produis EXACTEMENT cette structure en markdown :
 
 ## En une phrase
-(La thèse centrale du livre en une seule phrase percutante, maximum 25 mots)
+(La thèse centrale du livre en une seule phrase percutante, maximum 20 mots)
 
 ## Pourquoi le lire
-(2-3 phrases : à qui ça s'adresse et quel problème ça résout concrètement)
+(1-2 phrases max : à qui ça s'adresse et quel problème ça résout)
 
-## Les 5 idées-forces
-**1. [Titre court et frappant de l'idée]**
-Explication en 2-3 phrases. Inclut un exemple concret ou une mise en situation quand c'est pertinent.
+## Les idées-forces
+Identifie le nombre réel d'idées centrales du livre (entre 3 et 7 selon le livre). Ne force pas à 5.
+
+**1. [Titre court]**
+1-2 phrases. Exemple concret seulement si indispensable.
 
 **2. [Titre]**
 ...
 
-(Continue jusqu'à 5. Chaque idée doit être distincte et mémorable.)
-
-## Concepts & vocabulaire clés
-- **Nom du concept** : définition en une ligne
-- **Nom du concept** : définition en une ligne
-(3 à 5 concepts propres au livre, ceux qu'on réutilise après lecture)
+## Concepts clés
+- **Concept** : définition en une ligne
+(Tous les concepts propres au livre qu'on réutilise après lecture, sans limite de nombre)
 
 ## Ce que je peux appliquer dès demain
-- Action concrète 1 (commence par un verbe : "Noter...", "Bloquer 20 min...", "Remplacer... par...")
-- Action concrète 2
-- Action concrète 3
-- Action concrète 4
-(4 actions réalistes, spécifiques, mesurables)
+- Action 1 (verbe d'action : "Noter...", "Bloquer...", "Remplacer...")
+- Action 2
+- Action 3
+(3 actions réalistes et spécifiques, pas plus)
 
 ## Les pièges à éviter
-(2-3 erreurs classiques que les lecteurs font en appliquant ce livre, ou les limites / critiques légitimes du livre)
+(1-2 erreurs classiques ou limites légitimes du livre, 1-2 phrases chacune)
 
 ## Citation à retenir
-> Une citation marquante du livre (vraie, pas inventée) qui capture l'esprit de l'ouvrage.
+> Une citation marquante du livre (vraie, pas inventée).
 
 ## Tags
-(4 à 6 tags courts séparés par des virgules, lowercase, en français. Exemples de pool : productivité, habitudes, mindset, focus, communication, leadership, finance, relations, émotions, discipline, créativité, stoïcisme, méditation, négociation, apprentissage, santé, sommeil, prise-de-décision)`;
+(4 à 6 tags courts séparés par des virgules, lowercase, en français. Exemples : productivité, habitudes, mindset, focus, communication, leadership, finance, relations, émotions, discipline, créativité, stoïcisme, méditation, négociation, apprentissage, santé, sommeil, prise-de-décision)`;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await fetch(url, {
